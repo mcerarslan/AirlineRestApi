@@ -7,51 +7,48 @@ from django.shortcuts import render
 from airline.models import Airline
 from airline.serializer import AirlineSerializer
 
-@api_view(['GET'])
-def airline_list(request):
-    airlines = Airline.objects.all()
-    serializer = AirlineSerializer(airlines,many=True)
-    return Response(serializer.data, status= status.HTTP_200_OK)
+@api_view(['GET','POST'])
+def airlines(request):
+    if request.method == "GET":
+        airlines = Airline.objects.all()
+        serializer = AirlineSerializer(airlines,many=True)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+    
+    if request.method == "POST":
+        serializer = AirlineSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status= status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET','PUT','PATCH','DELETE'])
 def airline(request,id):
     try:
-      airline = Airline.objects.get(pk=id)
-      serializer = AirlineSerializer(airline)
-      return Response(serializer.data, status= status.HTTP_200_OK)
+       airline = Airline.objects.get(pk=id)
+
     except:
        return Response({"error": "Eşleşen bir kayıt bulunamadı."}, status= status.HTTP_404_NOT_FOUND)
-
-@api_view(['POST'])
-def airline_create(request):
-    serializer = AirlineSerializer(data = request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status= status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-@api_view(['PUT'])
-def airline_update(request,id):
-    airline = Airline.objects.get(pk=id)
-    serializer = AirlineSerializer(airline, data = request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    if request.method == "GET":
+       serializer = AirlineSerializer(airline)
+       return Response(serializer.data, status= status.HTTP_200_OK)
 
-@api_view(['PATCH'])
-def airline_patch(request,id):
-    airline = Airline.objects.get(pk=id)
-    serializer = AirlineSerializer(airline, data = request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    if request.method == "PUT":
+        serializer = AirlineSerializer(airline, data = request.data)
+        if serializer.is_valid():
+           serializer.save()
+           return Response(serializer.data)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-@api_view(['DELETE'])
-def airline_delete(request,id):
-    airline = Airline.objects.get(pk=id)
-    airline.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    if request.method == "PATCH":
+        serializer = AirlineSerializer(airline, data = request.data, partial=True)
+        if serializer.is_valid():
+           serializer.save()
+           return Response(serializer.data)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+    if request.method == "DELETE":
+        airline.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
