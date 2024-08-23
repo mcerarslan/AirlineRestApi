@@ -10,6 +10,11 @@ class AircraftSerializer(serializers.Serializer):
     operator_airline = serializers.PrimaryKeyRelatedField(queryset=Airline.objects.all())
     number_of_engines = serializers.IntegerField()
 
+    def validate_number_of_engines(self, value):
+        if value < 1:
+            raise serializers.ValidationError("Motor sayısı 1 den küçük olamaz.")
+        return value
+
     def create(self, validated_data):
         return Aircraft.objects.create(**validated_data)
 
